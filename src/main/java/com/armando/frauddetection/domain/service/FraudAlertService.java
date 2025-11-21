@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -19,25 +20,50 @@ public class FraudAlertService {
     private final FraudRulesEngine fraudRulesEngine;
 
     /**
-     * Evalúa reglas de fraude para una transacción y retorna las alertas
+     * Evalúa reglas de fraude para una transacción existente (por transactionId),
+     * persiste las alertas y actualiza el estado de la transacción.
      */
     public List<FraudAlert> getAlertsByTransactionId(String transactionId) {
 
-        // 1. Obtener evento (o lanzar excepción si no existe)
         TransactionEvent event = transactionEventRepository
                 .findByTransactionId(transactionId)
                 .orElseThrow(() ->
                         new RuntimeException("Transaction not found: " + transactionId));
 
-        // 2. Ejecutar motor de reglas
+        return evaluateAndPersist(event);
+    }
+
+    /**
+     * Evalúa las reglas para una transacción dada, actualiza la transacción
+     * (flagged / flagReason) y persiste las alertas generadas.
+     */
+    public List<FraudAlert> evaluateAndPersist(TransactionEvent event) {
+
+        // 1. Ejecutar motor de reglas
         List<FraudAlert> alerts = fraudRulesEngine.evaluate(event);
 
-        // 3. Persistir alertas si existen
+        // 2. Actualizar transacción según resultado
+        if (!alerts.isEmpty()) {
+            event.setFlagged(Boolean.TRUE);
+
+            String reasons = alerts.stream()
+                    .map(FraudAlert::getDescription)
+                    .collect(Collectors.joining(" | "));
+
+            event.setFlagReason(reasons);
+        } else {
+            event.setFlagged(Boolean.FALSE);
+            event.setFlagReason(null);
+        }
+
+        // 3. Persistir cambios de la transacción
+        transactionEventRepository.save(event);
+
+        // 4. Persistir alertas si existen
         if (!alerts.isEmpty()) {
             fraudAlertRepository.saveAll(alerts);
         }
 
-        // 4. Devolver la lista final
         return alerts;
     }
 }
