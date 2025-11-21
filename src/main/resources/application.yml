@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: fraud-detection-service
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/frauddb
+    username: frauduser
+    password: fraudpass
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: false
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  kafka:
+    bootstrap-servers: localhost:9092
+
+server:
+  port: 8080
