@@ -24,4 +24,22 @@ spring:
     bootstrap-servers: localhost:9092
 
 server:
-  port: 8080
+  port: 8081
+
+# ======================================================
+# 🔐 JWT CONFIGURATION
+# ======================================================
+security:
+  jwt:
+    secret: "c0a96af3e20a47fb987b1d4a4b5fd96c1c4a44b232650bd8bb4e381b573d56e3"
+    expiration: 3600000   # 1 hora en milisegundos
+
+# ======================================================
+# 👤 SUPER ADMIN DEFAULT (SEED)
+# El sistema crea este usuario si no existe
+# ======================================================
+app:
+  admin:
+    username: "admin"
+    password: "admin123"
+    role: "ADMIN"

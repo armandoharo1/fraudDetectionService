@@ -13,23 +13,26 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FraudRulesEngine {
 
+    /**
+     * Spring inyecta todas las beans que implementan FraudRule:
+     * - HighAmountRule
+     * - RiskyCountryRule
+     * - VelocityRule
+     * (y las que vayas agregando después)
+     */
     private final List<FraudRule> rules;
 
     public List<FraudAlert> evaluate(TransactionEvent event) {
-
         List<FraudAlert> alerts = new ArrayList<>();
 
         for (FraudRule rule : rules) {
             FraudRuleResult result = rule.apply(event);
 
             if (result.isTriggered()) {
-
                 FraudAlert alert = FraudAlert.builder()
                         .transactionId(event.getTransactionId())
-                        // usamos el nombre de la clase como código de regla (ej: HighAmountRule)
                         .ruleCode(rule.getClass().getSimpleName())
-                        // por ahora dejamos severidad fija; luego podemos sacarla de la regla
-                        .severity("HIGH")
+                        .severity(determineSeverity(rule))
                         .description(result.getReason())
                         .createdAt(OffsetDateTime.now())
                         .build();
@@ -39,5 +42,16 @@ public class FraudRulesEngine {
         }
 
         return alerts;
+    }
+
+    private String determineSeverity(FraudRule rule) {
+        if (rule instanceof HighAmountRule || rule instanceof RiskyCountryRule) {
+            return "HIGH";
+        }
+        if (rule instanceof VelocityRule) {
+            return "MEDIUM";
+        }
+        // Por si en el futuro agregas reglas informativas
+        return "LOW";
     }
 }

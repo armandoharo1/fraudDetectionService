@@ -19,14 +19,13 @@ public class TransactionEvent {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // ID de la transacción que viene del core/banco
     @Column(nullable = false, unique = true)
     private String transactionId;
 
     @Column(nullable = false)
     private String accountId;
 
-    @Column(nullable = false, precision = 19, scale = 2)
+    @Column(nullable = false)
     private BigDecimal amount;
 
     @Column(nullable = false, length = 3)
@@ -40,8 +39,8 @@ public class TransactionEvent {
     private String country;
     private String merchantId;
 
-    // Estos campos los iremos usando con las reglas
+    // Campos relacionados al riesgo
     private BigDecimal riskScore;
     private Boolean flagged;       // ¿marcada como sospechosa?
-    private String flagReason;     // regla que disparó la alerta
+    private String flagReason;     // regla(s) que dispararon la alerta
 }
