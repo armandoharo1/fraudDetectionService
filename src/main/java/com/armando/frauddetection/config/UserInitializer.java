@@ -4,39 +4,49 @@ import com.armando.frauddetection.domain.model.Role;
 import com.armando.frauddetection.domain.model.User;
 import com.armando.frauddetection.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
 
-@Component
+import jakarta.annotation.PostConstruct;
+
+@Configuration
 @RequiredArgsConstructor
-public class UserInitializer implements CommandLineRunner {
+public class UserInitializer {
 
     private final UserRepository userRepository;
-    private final PasswordEncoder encoder;
+    private final PasswordEncoder passwordEncoder;
 
-    @Value("${app.admin.username}")
-    private String adminUser;
+    @PostConstruct
+    public void init() {
 
-    @Value("${app.admin.password}")
-    private String adminPass;
-
-    @Override
-    public void run(String... args) {
-
-        if (userRepository.findByUsername(adminUser).isEmpty()) {
-
+        // 👑 Usuario ADMIN
+        if (userRepository.findByUsername("admin").isEmpty()) {
             User admin = User.builder()
-                    .username(adminUser)
-                    .password(encoder.encode(adminPass))
+                    .username("admin")
+                    .password(passwordEncoder.encode("123456"))
                     .role(Role.ADMIN)
-                    .enabled(true)
                     .build();
-
             userRepository.save(admin);
+        }
 
-            System.out.println("✔ ADMIN creado automáticamente: " + adminUser);
+        // 👤 Usuario ANALYST
+        if (userRepository.findByUsername("analyst").isEmpty()) {
+            User analyst = User.builder()
+                    .username("analyst")
+                    .password(passwordEncoder.encode("123456"))
+                    .role(Role.ANALYST)
+                    .build();
+            userRepository.save(analyst);
+        }
+
+        // 👤 Usuario AUDITOR
+        if (userRepository.findByUsername("auditor").isEmpty()) {
+            User auditor = User.builder()
+                    .username("auditor")
+                    .password(passwordEncoder.encode("123456"))
+                    .role(Role.AUDITOR)
+                    .build();
+            userRepository.save(auditor);
         }
     }
 }
