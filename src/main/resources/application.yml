@@ -59,3 +59,11 @@ management:
   info:
     env:
       enabled: true
+
+logging:
+  level:
+    root: INFO
+    com.armando.frauddetection: DEBUG
+
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} %-5level [%X{correlationId}] [%thread] %logger{36} - %msg%n"
