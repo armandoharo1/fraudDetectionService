@@ -17,7 +17,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @RequiredArgsConstructor
 @EnableWebSecurity
-@EnableMethodSecurity(prePostEnabled = true) // 👈 ESTA ES LA CLAVE
+@EnableMethodSecurity(prePostEnabled = true) // 👈 habilita @PreAuthorize
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtFilter;
@@ -28,11 +28,21 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable());
 
         http.authorizeHttpRequests(auth -> auth
+                // 🔓 Público (sin autenticación)
                 .requestMatchers("/api/v1/auth/**").permitAll()
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+
+                // 🔓 Health público (útil para k8s / load balancer)
+                .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
+
+                // 🔐 Resto de Actuator solo para ADMIN
+                .requestMatchers("/actuator/**").hasRole("ADMIN")
+
+                // 🔐 Todo lo demás requiere estar autenticado
                 .anyRequest().authenticated()
         );
 
+        // Filtro JWT antes del filtro de username/password
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

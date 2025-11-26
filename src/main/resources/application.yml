@@ -36,10 +36,26 @@ security:
 
 # ======================================================
 # 👤 SUPER ADMIN DEFAULT (SEED)
-# El sistema crea este usuario si no existe
+# (ahora mismo no lo usamos directamente, pero está listo
+#  por si luego quieres leerlo desde un @ConfigurationProperties)
 # ======================================================
 app:
   admin:
     username: "admin"
     password: "admin123"
     role: "ADMIN"
+
+# ======================================================
+# 📊 SPRING BOOT ACTUATOR
+# ======================================================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info,metrics,httpexchanges"
+  endpoint:
+    health:
+      show-details: when_authorized   # detalles solo si estás autenticada
+  info:
+    env:
+      enabled: true
