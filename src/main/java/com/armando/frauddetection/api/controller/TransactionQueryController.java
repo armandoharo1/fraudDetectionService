@@ -12,10 +12,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 
-@PreAuthorize("hasAnyRole('ROLE_ANALYST','ROLE_AUDITOR')")
 @RestController
 @RequestMapping("/api/v1/transactions")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyRole('ADMIN','ANALYST','AUDITOR')")
 public class TransactionQueryController {
 
     private final TransactionEventRepository transactionEventRepository;

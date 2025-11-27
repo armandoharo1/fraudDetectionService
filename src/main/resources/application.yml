@@ -36,8 +36,7 @@ security:
 
 # ======================================================
 # 👤 SUPER ADMIN DEFAULT (SEED)
-# (ahora mismo no lo usamos directamente, pero está listo
-#  por si luego quieres leerlo desde un @ConfigurationProperties)
+# (por ahora solo de referencia)
 # ======================================================
 app:
   admin:
@@ -55,15 +54,13 @@ management:
         include: "health,info,metrics,httpexchanges"
   endpoint:
     health:
-      show-details: when_authorized   # detalles solo si estás autenticada
+      show-details: when_authorized
   info:
     env:
       enabled: true
 
 logging:
   level:
-    root: INFO
     com.armando.frauddetection: DEBUG
-
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} %-5level [%X{correlationId}] [%thread] %logger{36} - %msg%n"
+    level: "%5p [%X{correlationId}]"

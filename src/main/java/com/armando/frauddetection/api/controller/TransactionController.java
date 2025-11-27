@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 import java.time.OffsetDateTime;
 import java.util.List;
 
-@PreAuthorize("hasRole('ROLE_ANALYST')")
 @RestController
 @RequestMapping("/api/v1/transactions")
 @RequiredArgsConstructor
@@ -27,7 +26,9 @@ public class TransactionController {
 
     @Operation(summary = "Create a transaction event")
     @PostMapping
-    public ResponseEntity<TransactionEvent> createTransaction(@RequestBody TransactionEventRequest request) {
+    @PreAuthorize("hasRole('ADMIN')")   // 👈 SOLO ADMIN CREA
+    public ResponseEntity<TransactionEvent> createTransaction(
+            @RequestBody TransactionEventRequest request) {
 
         TransactionEvent event = TransactionEvent.builder()
                 .transactionId(request.transactionId())
@@ -51,10 +52,10 @@ public class TransactionController {
 
     @Operation(summary = "Create a transaction and evaluate fraud rules")
     @PostMapping("/evaluate")
+    @PreAuthorize("hasRole('ADMIN')")   // 👈 también SOLO ADMIN
     public ResponseEntity<TransactionWithAlertsResponse> createAndEvaluate(
             @RequestBody TransactionEventRequest request) {
 
-        // 1. Persistimos la transacción
         TransactionEvent event = TransactionEvent.builder()
                 .transactionId(request.transactionId())
                 .accountId(request.accountId())
@@ -72,10 +73,8 @@ public class TransactionController {
 
         TransactionEvent saved = transactionEventRepository.save(event);
 
-        // 2. Ejecutamos el motor de reglas y persistimos alertas
         List<FraudAlert> alerts = fraudAlertService.evaluateAndPersist(saved);
 
-        // 3. Construimos respuesta combinada
         TransactionWithAlertsResponse response =
                 new TransactionWithAlertsResponse(saved, alerts);
 
