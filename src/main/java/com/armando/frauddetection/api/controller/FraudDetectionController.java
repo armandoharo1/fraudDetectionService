@@ -6,6 +6,7 @@ import com.armando.frauddetection.domain.model.FraudAlert;
 import com.armando.frauddetection.domain.model.TransactionEvent;
 import com.armando.frauddetection.domain.service.FraudDetectionService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,7 +24,9 @@ public class FraudDetectionController {
 
     @Operation(summary = "Detect fraud for a transaction")
     @PostMapping("/detect")
-    public ResponseEntity<DetectFraudResponse> detectFraud(@RequestBody DetectFraudRequest request) {
+    public ResponseEntity<DetectFraudResponse> detectFraud(
+            @Valid @RequestBody DetectFraudRequest request
+    ) {
 
         // 1. Construir el evento (sin persistir aún)
         TransactionEvent event = fraudDetectionService.buildEvent(request);
