@@ -1,182 +1,281 @@
-# 🇺🇸 Fraud Detection Service – Real-Time Fraud Engine  
-### Java 17 • Spring Boot 3.5 • PostgreSQL • Redis • Kafka • Docker
-
-A professional **real-time fraud detection microservice**, inspired by financial-grade architectures used in digital banking.
-
-This service evaluates incoming transactions, applies fraud rules, generates alerts, and assigns a dynamic risk score.  
-It is designed to operate in an event-driven ecosystem and can scale horizontally.
+# 🛡️ Fraud Detection Service
+Real-time fraud detection microservice built with **Spring Boot 3**, **Java 17**, **JWT Security**, **JUnit 5**, and **Mockito**.  
+It evaluates transactions through a pluggable rules engine and returns alerts, risk scores, and detailed responses.
 
 ---
 
-## 🛠️ **Tech Stack**
+# 🚀 Main Features
 
-| Layer | Technology |
-|------|------------|
-| Backend | **Java 17, Spring Boot 3.5, Lombok** |
-| Database | **PostgreSQL, Spring Data JPA** |
-| Cache / Rate Limit | **Redis** |
-| Messaging | **Apache Kafka + Zookeeper** |
-| Containerization | **Docker & Docker Compose** |
-| Documentation | **Swagger / Springdoc OpenAPI** |
-| Monitoring | **Spring Boot Actuator** |
+### ✔ Real-Time Fraud Detection
+The service evaluates incoming transactions using multiple business rules:
 
----
+- **HighAmountRule** – detects transactions with unusually high amounts
+- **RiskyCountryRule** – flags transactions originating from high-risk countries
+- **VelocityRule** – detects excessive transaction frequency per account
 
-## ✨ **Key Features**
-
-- Real-time transaction evaluation  
-- Pluggable fraud rules engine  
-- High-risk country detection  
-- High-amount detection  
-- Alert persistence  
-- Risk scoring system (0–100)  
-- Fully documented REST API  
-- Docker-ready local infrastructure
+All rules are executed by a central **FraudRulesEngine**, generating fraud alerts and risk scoring.
 
 ---
 
-## 📐 **Architectural Overview**
+### ✔ Role-Based Security (JWT)
+Authentication and authorization are handled using JWT and Spring Security.
 
-Clean modular structure:
+Available roles:
 
+| Role Enum | Spring Role | Description |
+|-----------|-------------|-------------|
+| `ADMIN`   | `ROLE_ADMIN`   | System administration |
+| `ANALYST` | `ROLE_ANALYST` | Can detect fraud via `/transactions/detect` |
+| `AUDITOR` | `ROLE_AUDITOR` | Can view transactions and alerts |
+
+- Login via: `/api/v1/auth/login`
+- Token is issued using HMAC SHA signing
+- Requests use: `Authorization: Bearer <token>`
+
+---
+
+### ✔ Centralized Error Handling
+All exceptions are handled by **GlobalExceptionHandler**.
+
+| Code | Description | When it happens |
+|------|-------------|-----------------|
+| **400** | Validation error | Missing or invalid fields in request DTO |
+| **401** | Authentication error | Invalid username/password |
+| **403** | Authorization error | User has no required role |
+| **500** | Internal server error | Unexpected exceptions |
+
+Each error response includes:
+
+- timestamp
+- status
+- error
+- message
+- path
+- `correlationId` (added by `RequestCorrelationFilter`)
+
+---
+
+### ✔ Correlation ID for Traceability
+Every incoming request receives a unique `X-Correlation-Id` header.
+
+- Helps trace requests through logs
+- Automatically added if missing
+
+Middleware: `RequestCorrelationFilter`
+
+---
+
+### ✔ Unit Testing (JUnit 5 + Mockito)
+The project includes full unit tests for:
+
+- **FraudDetectionService**
+- **HighAmountRule**
+- **RiskyCountryRule**
+- **VelocityRule**
+- Application startup test
+
+✔ **14 tests successfully running**  
+✔ Verified with Maven Surefire
+
+---
+
+### ✔ API Documentation with Swagger
+Auto-generated documentation available at:
+```md
+http://localhost:8081/swagger-ui.html
 ```
-src/main/java/com.armando.frauddetection
+
+
+Includes:
+
+- Authentication
+- Fraud Detection
+- Transactions
+- Alerts
+- Query endpoints
+
+---
+
+# 🧱 Project Architecture
+
+```md
+src/main/java/com/armando/frauddetection
 │
-├── api.controller        → REST Controllers
+├── api
+│   ├── controller        → REST controllers (Auth, Detection, Alerts, Queries)
+│   └── controller/dto    → Request/Response DTOs
+│
+├── config                → Filters, CORS, OpenAPI config, Correlation ID
 │
 ├── domain
-│   ├── model             → JPA Entities
-│   ├── repository        → JPA Repositories
-│   └── service           → Business Services (Fraud Engine)
+│   ├── model             → JPA entities
+│   ├── repository        → Spring Data JPA repositories
+│   └── service           → Business logic (FraudDetectionService)
 │
-├── rules                 → Fraud Rules
+├── rules                 → Fraud rules + rule engine
 │
-├── config                → Swagger, Security, Beans
-│
-└── FraudDetectionServiceApplication
+└── security              → JWT, authentication filter, security config
 ```
+## 🧱 Architecture Diagram
+![System Architecture](docs/architecture/system-architecture.png)
 
----
 
-## 🔄 **How the Engine Works (Flow)**
+# 🔍 Fraud Detection Flow
 
-### 1. A client sends a transaction  
-`POST /api/v1/transactions`
+flowchart TD
 
-It is validated and stored in PostgreSQL.
+A[Incoming Request: POST /transactions/detect] -> B[JWT Validation & Role Check (ANALYST)]
 
-### 2. The fraud engine evaluates rules  
-Each rule returns:
+B -> C[DTO Validation (@Valid)]
 
-- triggered (true/false)  
-- severity level  
-- description  
-- ruleCode  
+C -> D[Convert to TransactionEvent]
 
-### 3. Alerts are generated  
-Stored in `fraud_alerts`.
+D -> E[FraudRulesEngine executes rules]
 
-### 4. Risk Score is calculated  
-Range: **0–100** based on severity weight.
+E ->|Rules triggered| F[Generate Fraud Alerts]
 
-### 5. Response includes:
-- transaction (flagged or not)  
-- all fraud alerts  
+E ->|No rules triggered| G[Flagged = false]
 
----
+F -> H[Calculate riskScore]
 
-## 🚀 **Run Locally**
+G -> H[RiskScore = 0]
 
-### 1. Start infrastructure
-```bash
-docker compose up -d
-```
+H -> I[Persist TransactionEvent]
 
-### 2. Build & run the service
-```bash
-mvn clean install
-mvn spring-boot:run
-```
+I -> J[Return DetectFraudResponse]
 
-### 3. Swagger UI
-```
-http://localhost:8080/swagger-ui/index.html
-```
+## 🧱 Sequence Diagram
 
----
+![System Architecture](docs/diagrams/SEQUENCE-DIAGRAM.png)
 
-## 🧪 Example Request
+# 📡Example Request & Response
 
-**POST /api/v1/transactions**
-
-```json
+POST /api/v1/transactions/detect
+```md
 {
-  "transactionId": "TX-3001",
-  "accountId": "ACC-77777",
-  "amount": 4500,
-  "currency": "USD",
-  "channel": "WEB",
-  "ipAddress": "190.10.20.30",
-  "country": "RU",
-  "merchantId": "M-777"
+"transactionId": "TX-200",
+"accountId": "ACC-100",
+"amount": 4500,
+"currency": "USD",
+"channel": "WEB",
+"ipAddress": "190.10.20.30",
+"country": "RU",
+"merchantId": "M-999"
+}
+```
+Sample Response
+```md
+{
+"transaction": {
+"transactionId": "TX-200",
+"flagged": true,
+"riskScore": 110,
+"flagReason": "High amount | Risky country"
+},
+"alerts": [
+{ "ruleCode": "HighAmountRule", "description": "Amount 4500 exceeds threshold" },
+{ "ruleCode": "RiskyCountryRule", "description": "Country RU is high-risk" }
+]
 }
 ```
 
----
+# 🔐 Security
 
-## 🗄️ **Database Tables**
+Login Endpoint
 
-### `transaction_events`
-| Column | Description |
-|--------|-------------|
-| id | Primary key |
-| transaction_id | Unique transaction id |
-| account_id | Originating account |
-| amount | transaction amount |
-| currency | ISO currency |
-| flagged | boolean |
-| risk_score | 0–100 |
-| flag_reason | concatenated rules triggered |
+POST /api/v1/auth/login
 
-### `fraud_alerts`
-| Column | Description |
-|--------|-------------|
-| id | Primary key |
-| transaction_id | reference |
-| rule_code | rule name |
-| severity | LOW/MEDIUM/HIGH |
-| description | alert description |
-| created_at | timestamp |
+Request
+```md
+{
+"username": "analyst",
+"password": "123456"
+}
+```
 
----
+Response
+```md
+{
+"token": "xxxx.yyyy.zzzz",
+"username": "analyst",
+"role": "ROLE_ANALYST"
+}
+```
 
-## 📊 **Roadmap**
+# 🔥 Main Endpoints
+🔐 Authentication
+```md
+POST /api/v1/auth/login
+```
+🧠 Fraud Detection (ANALYST only)
+```md
+POST /api/v1/transactions/detect
+```
 
-### ✔ Completed
-- Microservice foundation  
-- Fraud rules engine  
-- Persistence / alert storage  
-- Swagger documentation  
-- Postgres + Redis + Kafka infra  
+📊 Transaction Queries
+```md
+GET /api/v1/transactions/{id}
 
-### 🔜 Next Steps
-- Kafka integration (Producer & Consumer)  
-- Real-time dashboards (React + WebSockets)  
-- Grafana + Prometheus monitoring  
-- JWT Authentication & RBAC  
-- Full Clean Architecture (DDD)  
-- Dockerfile + Cloud deploy (ECS/K8s)  
+GET /api/v1/transactions/list
+```
 
----
+# 🚨 Alerts
+```md
+GET /api/v1/alerts/{transactionId}
+```
 
-# 🇪🇸 Servicio de Detección de Fraudes – Motor en Tiempo Real  
-### Java 17 • Spring Boot 3.5 • PostgreSQL • Redis • Kafka • Docker
+# 🧪 Running Tests
 
-Este microservicio evalúa transacciones en tiempo real aplicando reglas antifraude, generando alertas y asignando un puntaje de riesgo.
+Run all unit tests:
+```md
+mvn test
+```
+Expected output:
+```md
+Tests run: 14, Failures: 0, Errors: 0, Skipped: 0
+BUILD SUCCESS
+```
 
-Arquitectura limpia, modular y preparada para operar en un ecosistema basado en eventos (Kafka).
+# ▶️ Running the Project
 
----
+1. Create PostgreSQL database
+```md
+CREATE DATABASE frauddb;
+```
+
+2. Configure database in application.yml
+
+```md
+url: jdbc:postgresql://localhost:5432/frauddb
+username: frauduser
+password: fraudpass
+server.port=8081
+```
+
+3. Run the application
+```md
+mvn spring-boot:run
+```
+
+# 🛣 Future Enhancements (Not Implemented Yet)
+
+- Kafka integration for streaming fraud events 
+- Redis caching for transaction history 
+- Controller-level tests with WebMvcTest 
+- JaCoCo code coverage reports 
+- Email/Webhook alert notifications
+
+# 🛠️ Tech Stack
+
+| Layer         | Technologies                     |
+| ------------- | -------------------------------- |
+| Backend       | Java 17, Spring Boot 3.5, Lombok |
+| Security      | Spring Security + JWT            |
+| Data          | PostgreSQL, JPA/Hibernate        |
+| Tests         | JUnit 5, Mockito                 |
+| Documentation | Swagger / Springdoc OpenAPI      |
+| Monitoring    | Spring Boot Actuator             |
+
 
 # ✍ **Autor**
 **Armando Haro**  

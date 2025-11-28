@@ -29,24 +29,19 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable());
 
         http.authorizeHttpRequests(auth -> auth
-                // 🔓 Público (sin autenticación)
                 .requestMatchers("/api/v1/auth/**").permitAll()
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
 
-                // 🔓 Health público
                 .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
 
-                // 🔐 Resto de Actuator solo para ADMIN
                 .requestMatchers("/actuator/**").hasRole("ADMIN")
 
                 // 🔐 Todo lo demás requiere estar autenticado
                 .anyRequest().authenticated()
         );
 
-        // 1️⃣ Filtro de correlación (primero)
         http.addFilterBefore(requestCorrelationFilter, UsernamePasswordAuthenticationFilter.class);
 
-        // 2️⃣ Filtro JWT (después)
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

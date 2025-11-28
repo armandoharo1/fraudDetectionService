@@ -25,21 +25,18 @@ class VelocityRuleTest {
 
     @Test
     void apply_shouldTriggerWhenRecentCountReachesThreshold() {
-        // given
         TransactionEvent event = TransactionEvent.builder()
                 .accountId("ACC-123")
                 .timestamp(OffsetDateTime.now())
                 .build();
 
-        // simulamos que en la ventana de tiempo hay 3 transacciones o más
+        // This simulates that in the time window there are 3 or more transactions
         when(transactionEventRepository
                 .countByAccountIdAndTimestampAfter(eq("ACC-123"), any(OffsetDateTime.class)))
                 .thenReturn(3L);
 
-        // when
         FraudRuleResult result = velocityRule.apply(event);
 
-        // then
         assertTrue(result.isTriggered());
         assertNotNull(result.getReason());
         assertTrue(result.getReason().contains("ACC-123"));
@@ -48,7 +45,6 @@ class VelocityRuleTest {
 
     @Test
     void apply_shouldNotTriggerWhenRecentCountIsBelowThreshold() {
-        // given
         TransactionEvent event = TransactionEvent.builder()
                 .accountId("ACC-456")
                 .timestamp(OffsetDateTime.now())
@@ -58,17 +54,14 @@ class VelocityRuleTest {
                 .countByAccountIdAndTimestampAfter(eq("ACC-456"), any(OffsetDateTime.class)))
                 .thenReturn(1L);
 
-        // when
         FraudRuleResult result = velocityRule.apply(event);
 
-        // then
         assertFalse(result.isTriggered());
         assertNull(result.getReason());
     }
 
     @Test
     void apply_shouldNotTriggerWhenAccountIdOrTimestampAreMissing() {
-        // given
         TransactionEvent noAccount = TransactionEvent.builder()
                 .accountId(null)
                 .timestamp(OffsetDateTime.now())
@@ -79,18 +72,15 @@ class VelocityRuleTest {
                 .timestamp(null)
                 .build();
 
-        // when
         FraudRuleResult resultNoAccount = velocityRule.apply(noAccount);
         FraudRuleResult resultNoTimestamp = velocityRule.apply(noTimestamp);
 
-        // then
         assertFalse(resultNoAccount.isTriggered());
         assertNull(resultNoAccount.getReason());
 
         assertFalse(resultNoTimestamp.isTriggered());
         assertNull(resultNoTimestamp.getReason());
 
-        // y en estos casos no debería llamar al repo
         verify(transactionEventRepository, never())
                 .countByAccountIdAndTimestampAfter(anyString(), any(OffsetDateTime.class));
     }

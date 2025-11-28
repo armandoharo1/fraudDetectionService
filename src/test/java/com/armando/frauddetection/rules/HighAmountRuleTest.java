@@ -13,15 +13,12 @@ class HighAmountRuleTest {
 
     @Test
     void apply_shouldTriggerWhenAmountIsAboveThreshold() {
-        // given
         TransactionEvent event = TransactionEvent.builder()
                 .amount(BigDecimal.valueOf(3000.00)) // > 2000
                 .build();
 
-        // when
         FraudRuleResult result = rule.apply(event);
 
-        // then
         assertTrue(result.isTriggered());
         assertNotNull(result.getReason());
         assertTrue(result.getReason().contains("3000"),
@@ -30,25 +27,22 @@ class HighAmountRuleTest {
 
     @Test
     void apply_shouldNotTriggerWhenAmountIsBelowOrEqualThreshold() {
-        // given
         TransactionEvent eventBelow = TransactionEvent.builder()
                 .amount(BigDecimal.valueOf(1500.00))
                 .build();
 
         TransactionEvent eventEqual = TransactionEvent.builder()
-                .amount(BigDecimal.valueOf(2000.00)) // igual al threshold
+                .amount(BigDecimal.valueOf(2000.00)) // equal to threshold
                 .build();
 
         TransactionEvent eventNull = TransactionEvent.builder()
                 .amount(null)
                 .build();
 
-        // when
         FraudRuleResult resultBelow = rule.apply(eventBelow);
         FraudRuleResult resultEqual = rule.apply(eventEqual);
         FraudRuleResult resultNull = rule.apply(eventNull);
 
-        // then
         assertFalse(resultBelow.isTriggered());
         assertNull(resultBelow.getReason());
 

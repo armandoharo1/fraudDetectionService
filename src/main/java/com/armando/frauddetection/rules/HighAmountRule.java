@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 @Component
 public class HighAmountRule implements FraudRule {
 
-    private static final BigDecimal THRESHOLD = BigDecimal.valueOf(2000.00); // monto mínimo sospechoso
+    private static final BigDecimal THRESHOLD = BigDecimal.valueOf(2000.00);
 
     @Override
     public FraudRuleResult apply(TransactionEvent event) {

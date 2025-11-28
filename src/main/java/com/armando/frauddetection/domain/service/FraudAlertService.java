@@ -20,26 +20,15 @@ public class FraudAlertService {
     private final TransactionEventRepository transactionEventRepository;
     private final FraudRulesEngine fraudRulesEngine;
 
-    /**
-     * Peso (puntaje) que aporta cada regla cuando se dispara.
-     */
     private static final Map<String, Integer> RULE_WEIGHTS = Map.of(
             "HighAmountRule", 60,
             "RiskyCountryRule", 40
-            // Aquí luego puedes añadir más reglas: "VelocityRule", etc.
     );
 
-    /**
-     * Método usado por TransactionController:
-     * recibe el TransactionEvent ya persistido, evalúa reglas,
-     * actualiza riskScore / flagged / flagReason y guarda las alertas.
-     */
     public List<FraudAlert> evaluateAndPersist(TransactionEvent event) {
 
-        // 1. Ejecutar motor de reglas → genera las alertas
         List<FraudAlert> alerts = fraudRulesEngine.evaluate(event);
 
-        // 2. Calcular score total y severidades
         int totalScore = 0;
         StringBuilder combinedReason = new StringBuilder();
 
@@ -49,10 +38,8 @@ public class FraudAlertService {
             int ruleScore = RULE_WEIGHTS.getOrDefault(ruleCode, 0);
             totalScore += ruleScore;
 
-            // severidad por regla
             alert.setSeverity(mapSeverity(ruleScore));
 
-            // concatenar descripción en flagReason
             if (combinedReason.length() > 0) {
                 combinedReason.append(" | ");
             }
@@ -61,7 +48,6 @@ public class FraudAlertService {
 
         int normalizedScore = Math.min(totalScore, 100);
 
-        // 3. Actualizar la transacción con info de riesgo
         if (!alerts.isEmpty()) {
             event.setRiskScore(BigDecimal.valueOf(normalizedScore));
             event.setFlagged(true);
@@ -72,19 +58,16 @@ public class FraudAlertService {
             event.setFlagReason(null);
         }
 
-        // 4. Persistir cambios en BD
-        transactionEventRepository.save(event);      // riskScore / flagged / flagReason
+
+        transactionEventRepository.save(event);
         if (!alerts.isEmpty()) {
-            fraudAlertRepository.saveAll(alerts);    // alertas
+            fraudAlertRepository.saveAll(alerts);
         }
 
         return alerts;
     }
 
-    /**
-     * Método extra por si quieres evaluar a partir de un transactionId.
-     * Internamente solo busca el evento y reutiliza evaluateAndPersist.
-     */
+
     public List<FraudAlert> getAlertsByTransactionId(String transactionId) {
 
         TransactionEvent event = transactionEventRepository

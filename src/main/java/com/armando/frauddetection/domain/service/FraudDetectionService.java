@@ -21,10 +21,7 @@ public class FraudDetectionService {
     private final FraudAlertRepository fraudAlertRepository;
     private final FraudRulesEngine fraudRulesEngine;
 
-    /**
-     * Construye el evento de transacción a partir del request,
-     * pero NO lo persiste todavía en la base de datos.
-     */
+
     public TransactionEvent buildEvent(DetectFraudRequest request) {
         return TransactionEvent.builder()
                 .transactionId(request.transactionId())
@@ -42,17 +39,12 @@ public class FraudDetectionService {
                 .build();
     }
 
-    /**
-     * Persiste el evento en la base de datos.
-     */
+
     public TransactionEvent saveEvent(TransactionEvent event) {
         return transactionEventRepository.save(event);
     }
 
-    /**
-     * Ejecuta las reglas de fraude sobre la transacción y
-     * guarda las alertas generadas (si las hay).
-     */
+
     public List<FraudAlert> evaluateRules(TransactionEvent event) {
         List<FraudAlert> alerts = fraudRulesEngine.evaluate(event);
 
@@ -63,10 +55,7 @@ public class FraudDetectionService {
         return alerts;
     }
 
-    /**
-     * Calcula un riskScore total a partir de las alertas generadas.
-     * Aquí puedes tunear el peso de cada regla.
-     */
+
     public BigDecimal calculateRiskScore(List<FraudAlert> alerts) {
         if (alerts == null || alerts.isEmpty()) {
             return BigDecimal.ZERO;
@@ -86,7 +75,7 @@ public class FraudDetectionService {
             case "HighAmountRule" -> 50;
             case "RiskyCountryRule" -> 60;
             case "VelocityRule"     -> 40;
-            default                 -> 10; // reglas futuras con peso bajo por defecto
+            default                 -> 10;
         };
     }
 }

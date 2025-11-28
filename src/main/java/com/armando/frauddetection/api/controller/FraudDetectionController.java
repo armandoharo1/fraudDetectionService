@@ -28,13 +28,10 @@ public class FraudDetectionController {
             @Valid @RequestBody DetectFraudRequest request
     ) {
 
-        // 1. Construir el evento (sin persistir aún)
         TransactionEvent event = fraudDetectionService.buildEvent(request);
 
-        // 2. Evaluar reglas de fraude
         List<FraudAlert> alerts = fraudDetectionService.evaluateRules(event);
 
-        // 3. Marcar el evento según las alertas + calcular riskScore
         if (!alerts.isEmpty()) {
             event.setFlagged(Boolean.TRUE);
 
@@ -51,10 +48,8 @@ public class FraudDetectionController {
             event.setRiskScore(java.math.BigDecimal.ZERO);
         }
 
-        // 4. Guardar el evento UNA sola vez
         TransactionEvent savedEvent = fraudDetectionService.saveEvent(event);
 
-        // 5. Construir y devolver la respuesta
         DetectFraudResponse response = new DetectFraudResponse(savedEvent, alerts);
         return ResponseEntity.ok(response);
     }

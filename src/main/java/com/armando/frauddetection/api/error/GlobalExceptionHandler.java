@@ -21,9 +21,6 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    /**
-     * 400 - Errores de validación de @Valid (body con campos inválidos)
-     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationException(
             MethodArgumentNotValidException ex,
@@ -57,9 +54,7 @@ public class GlobalExceptionHandler {
         return error.getField() + ": " + error.getDefaultMessage();
     }
 
-    /**
-     * 401 - Errores de autenticación (login, credenciales inválidas)
-     */
+
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ErrorResponse> handleAuthenticationException(
             AuthenticationException ex,
@@ -81,9 +76,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
     }
 
-    /**
-     * 403 - Errores de autorización (@PreAuthorize, roles, etc.)
-     */
+
     @ExceptionHandler({AccessDeniedException.class, AuthorizationDeniedException.class})
     public ResponseEntity<ErrorResponse> handleAccessDenied(
             Exception ex,
@@ -105,9 +98,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
     }
 
-    /**
-     * 500 - Catch-all: cualquier excepción no controlada
-     */
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(
             Exception ex,

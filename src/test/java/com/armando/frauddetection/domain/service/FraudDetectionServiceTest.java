@@ -47,10 +47,10 @@ class FraudDetectionServiceTest {
                 "M-999"
         );
 
-        // when
+
         TransactionEvent event = fraudDetectionService.buildEvent(request);
 
-        // then
+
         assertEquals("TX-100", event.getTransactionId());
         assertEquals("ACC-200", event.getAccountId());
         assertEquals(BigDecimal.valueOf(1500.50), event.getAmount());
@@ -68,14 +68,12 @@ class FraudDetectionServiceTest {
 
     @Test
     void saveEvent_shouldDelegateToRepository() {
-        // given
         TransactionEvent event = TransactionEvent.builder()
                 .transactionId("TX-200")
                 .build();
 
         when(transactionEventRepository.save(event)).thenReturn(event);
 
-        // when
         TransactionEvent result = fraudDetectionService.saveEvent(event);
 
         // then
@@ -104,10 +102,8 @@ class FraudDetectionServiceTest {
 
         when(fraudRulesEngine.evaluate(event)).thenReturn(alerts);
 
-        // when
         List<FraudAlert> result = fraudDetectionService.evaluateRules(event);
 
-        // then
         assertEquals(2, result.size());
         assertTrue(result.contains(alert1));
         assertTrue(result.contains(alert2));
@@ -117,17 +113,14 @@ class FraudDetectionServiceTest {
 
     @Test
     void evaluateRules_shouldNotPersistWhenEmpty() {
-        // given
         TransactionEvent event = TransactionEvent.builder()
                 .transactionId("TX-400")
                 .build();
 
         when(fraudRulesEngine.evaluate(event)).thenReturn(List.of());
 
-        // when
         List<FraudAlert> result = fraudDetectionService.evaluateRules(event);
 
-        // then
         assertNotNull(result);
         assertTrue(result.isEmpty());
         verify(fraudAlertRepository, never()).saveAll(anyList());
@@ -135,11 +128,9 @@ class FraudDetectionServiceTest {
 
     @Test
     void calculateRiskScore_shouldReturnZeroWhenNoAlerts() {
-        // when
         BigDecimal result1 = fraudDetectionService.calculateRiskScore(null);
         BigDecimal result2 = fraudDetectionService.calculateRiskScore(List.of());
 
-        // then
         assertEquals(BigDecimal.ZERO, result1);
         assertEquals(BigDecimal.ZERO, result2);
     }
@@ -149,26 +140,25 @@ class FraudDetectionServiceTest {
         // given
         FraudAlert highAmount = FraudAlert.builder()
                 .ruleCode("HighAmountRule")
-                .build(); // peso 50
+                .build(); // weight 50
 
         FraudAlert riskyCountry = FraudAlert.builder()
                 .ruleCode("RiskyCountryRule")
-                .build(); // peso 60
+                .build(); // weight 60
 
         FraudAlert velocity = FraudAlert.builder()
                 .ruleCode("VelocityRule")
-                .build(); // peso 40
+                .build(); // weight 40
 
         FraudAlert unknown = FraudAlert.builder()
                 .ruleCode("SomeFutureRule")
-                .build(); // peso default 10
+                .build(); //  default weight 10
 
         List<FraudAlert> alerts = List.of(highAmount, riskyCountry, velocity, unknown);
 
-        // when
+
         BigDecimal score = fraudDetectionService.calculateRiskScore(alerts);
 
-        // then
         // 50 + 60 + 40 + 10 = 160
         assertEquals(BigDecimal.valueOf(160), score);
     }

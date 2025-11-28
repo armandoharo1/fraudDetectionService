@@ -19,7 +19,6 @@ public class UserInitializer {
     @PostConstruct
     public void init() {
 
-        // 👑 Usuario ADMIN
         if (userRepository.findByUsername("admin").isEmpty()) {
             User admin = User.builder()
                     .username("admin")
@@ -29,7 +28,6 @@ public class UserInitializer {
             userRepository.save(admin);
         }
 
-        // 👤 Usuario ANALYST
         if (userRepository.findByUsername("analyst").isEmpty()) {
             User analyst = User.builder()
                     .username("analyst")
@@ -39,7 +37,6 @@ public class UserInitializer {
             userRepository.save(analyst);
         }
 
-        // 👤 Usuario AUDITOR
         if (userRepository.findByUsername("auditor").isEmpty()) {
             User auditor = User.builder()
                     .username("auditor")

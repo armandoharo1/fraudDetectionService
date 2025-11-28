@@ -22,10 +22,10 @@ public class FraudAlert {
     private String transactionId;
 
     @Column(nullable = false)
-    private String ruleCode;   // HighAmountRule, RiskyCountryRule, VelocityRule, etc.
+    private String ruleCode;
 
     @Column(nullable = false)
-    private String severity;   // LOW, MEDIUM, HIGH
+    private String severity;
 
     @Column(nullable = false, length = 500)
     private String description;

@@ -13,13 +13,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FraudRulesEngine {
 
-    /**
-     * Spring inyecta todas las beans que implementan FraudRule:
-     * - HighAmountRule
-     * - RiskyCountryRule
-     * - VelocityRule
-     * (y las que vayas agregando después)
-     */
+
     private final List<FraudRule> rules;
 
     public List<FraudAlert> evaluate(TransactionEvent event) {
@@ -51,7 +45,6 @@ public class FraudRulesEngine {
         if (rule instanceof VelocityRule) {
             return "MEDIUM";
         }
-        // Por si en el futuro agregas reglas informativas
         return "LOW";
     }
 }

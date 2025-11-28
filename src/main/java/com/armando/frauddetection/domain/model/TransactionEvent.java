@@ -34,13 +34,13 @@ public class TransactionEvent {
     @Column(nullable = false)
     private OffsetDateTime timestamp;
 
-    private String channel;        // WEB, MOBILE, ATM, POS, etc.
+    private String channel;
     private String ipAddress;
     private String country;
     private String merchantId;
 
-    // Campos relacionados al riesgo
+
     private BigDecimal riskScore;
-    private Boolean flagged;       // ¿marcada como sospechosa?
-    private String flagReason;     // regla(s) que dispararon la alerta
+    private Boolean flagged;
+    private String flagReason;
 }

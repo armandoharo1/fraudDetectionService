@@ -15,7 +15,6 @@ public interface TransactionEventRepository extends JpaRepository<TransactionEve
 
     long countByAccountIdAndTimestampAfter(String accountId, OffsetDateTime timestamp);
 
-    // Nuevos métodos para las consultas paginadas
     Page<TransactionEvent> findAllByFlagged(Boolean flagged, Pageable pageable);
 
     Page<TransactionEvent> findAllByRiskScoreGreaterThanEqual(BigDecimal riskScore, Pageable pageable);

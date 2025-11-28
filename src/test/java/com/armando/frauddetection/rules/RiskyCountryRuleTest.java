@@ -11,15 +11,12 @@ class RiskyCountryRuleTest {
 
     @Test
     void apply_shouldTriggerWhenCountryIsBlacklisted() {
-        // given
         TransactionEvent event = TransactionEvent.builder()
-                .country("RU") // está en el BLACKLIST
+                .country("RU") // is in the BLACKLIST
                 .build();
 
-        // when
         FraudRuleResult result = rule.apply(event);
 
-        // then
         assertTrue(result.isTriggered());
         assertNotNull(result.getReason());
         assertTrue(result.getReason().contains("RU"));
@@ -27,7 +24,6 @@ class RiskyCountryRuleTest {
 
     @Test
     void apply_shouldNotTriggerWhenCountryIsSafeOrNull() {
-        // given
         TransactionEvent safeCountry = TransactionEvent.builder()
                 .country("PE")
                 .build();
@@ -36,11 +32,9 @@ class RiskyCountryRuleTest {
                 .country(null)
                 .build();
 
-        // when
         FraudRuleResult resultSafe = rule.apply(safeCountry);
         FraudRuleResult resultNull = rule.apply(nullCountry);
 
-        // then
         assertFalse(resultSafe.isTriggered());
         assertNull(resultSafe.getReason());
 

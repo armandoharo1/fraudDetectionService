@@ -27,24 +27,19 @@ public class RequestCorrelationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         try {
-            // 1. Obtener correlationId del header o generarlo
             String correlationId = request.getHeader(CORRELATION_ID_HEADER);
             if (!StringUtils.hasText(correlationId)) {
                 correlationId = UUID.randomUUID().toString();
             }
 
-            // 2. Guardar en MDC (para logs) y devolver en la respuesta
             MDC.put(CORRELATION_ID_MDC_KEY, correlationId);
             response.setHeader(CORRELATION_ID_HEADER, correlationId);
 
-            // 3. Log básico de entrada
             log.info("Incoming request: {} {}", request.getMethod(), request.getRequestURI());
 
-            // 4. Continuar la cadena de filtros
             filterChain.doFilter(request, response);
 
         } finally {
-            // 5. Limpiar el MDC
             MDC.remove(CORRELATION_ID_MDC_KEY);
         }
     }
