@@ -1,7 +1,6 @@
 -- ===========================================
 --  Fraud Detection Service - Database Schema
 --  PostgreSQL
--- ===========================================
 
 -- DROP TABLE IF EXISTS fraud_alerts CASCADE;
 -- DROP TABLE IF EXISTS transaction_events CASCADE;
